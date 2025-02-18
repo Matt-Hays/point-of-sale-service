@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -26,4 +28,16 @@ public class Transaction {
     private LocalDateTime createdAt;
 
     private LocalDateTime completedAt;
+
+    @ManyToOne
+    private Customer customer;
+
+    @ManyToOne
+    private Register register;
+
+    @ManyToOne
+    private Employee employee;
+
+    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL)
+    private Set<TransactionLineItem> transactionLineItems = new HashSet<>();
 }

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -51,4 +53,7 @@ public class Employee {
 
     @Enumerated(EnumType.STRING)
     private EmployeePosition employeePosition;
+
+    @OneToMany(mappedBy = "employee")
+    private Set<Transaction> transactions = new HashSet<>();
 }

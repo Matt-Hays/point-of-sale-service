@@ -1,11 +1,10 @@
 package com.courseproject.pointofsaleservice.models;
 
-import com.courseproject.pointofsaleservice.models.enums.PaymentType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -15,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class Payment {
+public class TransactionLineItem {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -23,9 +22,14 @@ public class Payment {
     @Version
     private Long version;
 
-    private LocalDateTime completedAt;
-
-    @Enumerated(EnumType.STRING)
     @NotNull
-    private PaymentType paymentType;
+    @Min(0)
+    private Double quantity;
+
+    @ManyToOne
+    private Product product;
+
+    @ManyToOne
+    @NotNull
+    private Transaction transaction;
 }
