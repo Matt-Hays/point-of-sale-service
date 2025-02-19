@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.UUID;
+import java.lang.Long;
 
 @RestController
 @AllArgsConstructor
@@ -23,23 +23,22 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public Customer getCustomerById(@PathVariable UUID id) {
+    public Customer getCustomerById(@PathVariable Long id) {
         return customerService.getCustomerById(id);
     }
 
     @PostMapping
     public Customer createCustomer(@RequestBody @Valid Customer customer) {
-        Customer savedCustomer = customerService.saveCustomer(customer);
-        return restTemplate.postForObject("http://localhost:8081/customer", savedCustomer, Customer.class);
+        return customerService.saveCustomer(customer);
     }
 
     @PatchMapping("/{id}")
-    public Customer updateCustomer(@PathVariable UUID id, @RequestBody @Valid Customer customer) {
+    public Customer updateCustomer(@PathVariable Long id, @RequestBody @Valid Customer customer) {
         return customerService.updateCustomer(id, customer);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCustomer(@PathVariable UUID id) {
+    public void deleteCustomer(@PathVariable Long id) {
         customerService.deleteCustomer(id);
     }
 }

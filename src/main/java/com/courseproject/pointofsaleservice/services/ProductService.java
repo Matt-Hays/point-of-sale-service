@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
+import java.lang.Long;
 
 @Service
 @AllArgsConstructor
@@ -18,7 +18,7 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    public Product getProductById(UUID id) throws EntityNotFoundException {
+    public Product getProductById(Long id) throws EntityNotFoundException {
         return productRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
     }
@@ -27,7 +27,7 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public Product updateProduct(UUID id, Product product) throws EntityNotFoundException {
+    public Product updateProduct(Long id, Product product) throws EntityNotFoundException {
         Product oldProduct = getProductById(id);
         if (oldProduct == null) return null;
         if (product.getSku() != null) oldProduct.setSku(product.getSku());
@@ -35,7 +35,7 @@ public class ProductService {
         return productRepository.save(oldProduct);
     }
 
-    public void deleteProduct(UUID id) {
+    public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }
 }

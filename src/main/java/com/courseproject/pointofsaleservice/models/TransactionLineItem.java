@@ -1,11 +1,10 @@
 package com.courseproject.pointofsaleservice.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -16,8 +15,8 @@ import java.util.UUID;
 @ToString
 public class TransactionLineItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     @Version
     private Long version;
@@ -27,9 +26,11 @@ public class TransactionLineItem {
     private Double quantity;
 
     @ManyToOne
+    @JsonBackReference("product-transactionLineItems")
     private Product product;
 
     @ManyToOne
     @NotNull
+    @JsonBackReference("transaction-transactionLineItems")
     private Transaction transaction;
 }

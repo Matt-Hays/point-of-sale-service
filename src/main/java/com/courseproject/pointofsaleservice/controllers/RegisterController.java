@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
+import java.lang.Long;
 
 @RestController
 @AllArgsConstructor
@@ -22,7 +22,7 @@ public class RegisterController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Register> getRegisterById(@PathVariable UUID id) {
+    public ResponseEntity<Register> getRegisterById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(registerService.findRegisterById(id));
         } catch (Exception e) {
@@ -36,7 +36,7 @@ public class RegisterController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Register> updateRegister(@PathVariable UUID id, @RequestBody @Valid Register register) {
+    public ResponseEntity<Register> updateRegister(@PathVariable Long id, @RequestBody @Valid Register register) {
         try {
             return ResponseEntity.ok(registerService.updateRegister(id, register));
         } catch (Exception e) {
@@ -45,7 +45,7 @@ public class RegisterController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteRegister(@PathVariable UUID id) {
+    public void deleteRegister(@PathVariable Long id) {
         registerService.deleteRegister(id);
     }
 }

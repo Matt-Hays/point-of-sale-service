@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
+import java.lang.Long;
 
 @Service
 @AllArgsConstructor
@@ -18,7 +18,7 @@ public class RegisterService {
         return registerRepository.findAll();
     }
 
-    public Register findRegisterById(UUID id) throws EntityNotFoundException {
+    public Register findRegisterById(Long id) throws EntityNotFoundException {
         return registerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
@@ -26,13 +26,13 @@ public class RegisterService {
         return registerRepository.save(register);
     }
 
-    public Register updateRegister(UUID id, Register register) throws EntityNotFoundException {
+    public Register updateRegister(Long id, Register register) throws EntityNotFoundException {
         Register oldRegister = findRegisterById(id);
         if (register.getLocation() != null) oldRegister.setLocation(register.getLocation());
         return registerRepository.save(oldRegister);
     }
 
-    public void deleteRegister(UUID id) {
+    public void deleteRegister(Long id) {
         registerRepository.deleteById(id);
     }
 }

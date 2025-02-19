@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
+import java.lang.Long;
 
 @RestController
 @AllArgsConstructor
@@ -18,12 +18,9 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping("/{id}/item")
-    public ResponseEntity<Transaction> addTransactionLineItems(@PathVariable UUID id, @RequestBody @Valid TransactionLineItem transactionLineItem) {
+    public ResponseEntity<Transaction> addTransactionLineItems(@PathVariable Long id, @RequestBody TransactionLineItem transactionLineItem) {
         try {
-            Transaction transaction = transactionService.getTransactionById(id);
-            transactionLineItem.setTransaction(transaction);
-            transaction.getTransactionLineItems().add(transactionLineItem);
-            return ResponseEntity.ok(transactionService.updateTransaction(transaction.getId(), transaction));
+            return ResponseEntity.ok(transactionService.addTransactionLineItem(id, transactionLineItem));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -35,7 +32,7 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Transaction> getTransactionById(@PathVariable UUID id) {
+    public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(transactionService.getTransactionById(id));
         } catch (Exception e) {
@@ -49,7 +46,7 @@ public class TransactionController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Transaction> updateTransaction(@PathVariable UUID id, @RequestBody @Valid Transaction transaction) {
+    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @RequestBody @Valid Transaction transaction) {
         try {
             return ResponseEntity.ok(transactionService.updateTransaction(id, transaction));
         } catch (Exception e) {
@@ -58,7 +55,7 @@ public class TransactionController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTransaction(@PathVariable UUID id) {
+    public void deleteTransaction(@PathVariable Long id) {
         transactionService.deleteTransaction(id);
     }
 }

@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
+import java.lang.Long;
 
 @Service
 @AllArgsConstructor
@@ -23,11 +23,11 @@ public class CustomerService {
         return customerRepository.findAll();
     }
 
-    public Customer getCustomerById(UUID id) throws EntityNotFoundException {
+    public Customer getCustomerById(Long id) throws EntityNotFoundException {
         return customerRepository.findById(id).orElseThrow(EntityExistsException::new);
     }
 
-    public Customer updateCustomer(UUID id, Customer customer) throws EntityNotFoundException {
+    public Customer updateCustomer(Long id, Customer customer) throws EntityNotFoundException {
         Customer oldCustomer = getCustomerById(id);
         if (customer.getFirstName() != null) oldCustomer.setFirstName(customer.getFirstName());
         if (customer.getLastName() != null) oldCustomer.setLastName(customer.getLastName());
@@ -41,7 +41,7 @@ public class CustomerService {
         return customerRepository.save(oldCustomer);
     }
 
-    public void deleteCustomer(UUID id) {
+    public void deleteCustomer(Long id) {
         customerRepository.deleteById(id);
     }
 }

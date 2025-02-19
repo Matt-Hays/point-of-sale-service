@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
+import java.lang.Long;
 
 @RestController
 @AllArgsConstructor
@@ -21,7 +21,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}")
-    public Employee getEmployeeById(@PathVariable UUID id) {
+    public Employee getEmployeeById(@PathVariable Long id) {
         return employeeService.getEmployeeById(id);
     }
 
@@ -31,12 +31,12 @@ public class EmployeeController {
     }
 
     @PatchMapping("/{id}")
-    public Employee updateEmployee(@PathVariable UUID id, @RequestBody @Valid Employee employee) {
+    public Employee updateEmployee(@PathVariable Long id, @RequestBody @Valid Employee employee) {
         return employeeService.updateEmployee(id, employee);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteEmployee(@PathVariable UUID id) {
+    public void deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
     }
 }

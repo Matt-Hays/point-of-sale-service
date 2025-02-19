@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
+import java.lang.Long;
 
 @Service
 @AllArgsConstructor
@@ -18,7 +18,7 @@ public class EmployeeService {
         return employeeRepository.findAll();
     }
 
-    public Employee getEmployeeById(UUID id) throws EntityNotFoundException {
+    public Employee getEmployeeById(Long id) throws EntityNotFoundException {
         return employeeRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
@@ -26,7 +26,7 @@ public class EmployeeService {
         return employeeRepository.save(employee);
     }
 
-    public Employee updateEmployee(UUID id, Employee employee) throws EntityNotFoundException {
+    public Employee updateEmployee(Long id, Employee employee) throws EntityNotFoundException {
         Employee oldEmployee = getEmployeeById(id);
         if (employee.getFirstName() != null) oldEmployee.setFirstName(employee.getFirstName());
         if (employee.getLastName() != null) oldEmployee.setLastName(employee.getLastName());
@@ -40,7 +40,7 @@ public class EmployeeService {
         return employeeRepository.save(oldEmployee);
     }
 
-    public void deleteEmployee(UUID id) {
+    public void deleteEmployee(Long id) {
         employeeRepository.deleteById(id);
     }
 }
