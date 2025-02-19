@@ -1,22 +1,24 @@
 package com.courseproject.pointofsaleservice.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = "transactions")
 @ToString
 public class Customer {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     @Version
     private Long version;
@@ -47,4 +49,8 @@ public class Customer {
 
     @NotBlank
     private String country;
+
+    @OneToMany(mappedBy = "customer")
+    @JsonManagedReference("customer-transactions")
+    private Set<Transaction> transactions = new HashSet<>();
 }

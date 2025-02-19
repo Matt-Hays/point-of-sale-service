@@ -1,0 +1,1 @@
+CREATE DATABASE IF NOT EXISTS point_of_sale_service;
