@@ -16,7 +16,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -80,50 +79,57 @@ public class TransactionService {
 
     public Transaction completeTransaction(String token, Long id) {
         Transaction transaction = getTransactionById(id);
-        if (transaction == null) {
+        if (transaction == null)
             throw new EntityNotFoundException("Transaction not found");
-        }
 
-        Set<TransactionLineItem> transactionLineItems = transaction.getTransactionLineItems();
-        log.info("TransactionLineItems {}", transactionLineItems);
+        deductProductQuantity(token, transaction);
+        addLoyaltyRewards(token, transaction);
 
-        transactionLineItems.forEach(transactionLineItem -> {
+        transaction.setCompletedAt(LocalDateTime.now());
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        log.info("Transaction completed successfully: {}", savedTransaction);
+        return savedTransaction;
+    }
+
+    private void deductProductQuantity(String token, Transaction transaction) {
+        transaction.getTransactionLineItems().forEach(transactionLineItem -> {
             Double qty = transactionLineItem.getQuantity();
             String url = "http://gateway:8072/inventory-service/v1/product/"
                     + transactionLineItem.getProduct().getId() + "/sale/" + qty;
-
-            // Build the RestTemplate (consider reusing it if possible)
-            RestTemplate restTemplate = restTemplateBuilder.build();
-
-            // Set up HTTP headers and attach the JWT as a Bearer token
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", token);
-
-            HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
-
-            try {
-                // Make the PATCH request expecting a Product in response
-                ResponseEntity<Product> response = restTemplate.exchange(
-                        url,
-                        HttpMethod.PATCH,
-                        requestEntity,
-                        Product.class
-                );
-
-                if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                    throw new RuntimeException("Failed to deduct inventory for product id "
-                            + transactionLineItem.getProduct().getId() +
-                            ". Status code: " + response.getStatusCode());
-                }
-
-            } catch (RestClientException e) {
-                throw new RuntimeException("Error calling inventory service for product id "
-                        + transactionLineItem.getProduct().getId(), e);
-            }
+            sendRequest(token, url, HttpMethod.PATCH, Product.class);
         });
+    }
 
-        log.info("Transaction completed successfully");
-        transaction.setCompletedAt(LocalDateTime.now());
-        return transactionRepository.save(transaction);
+    private void addLoyaltyRewards(String token, Transaction transaction) {
+        Customer customer = transaction.getCustomer();
+        double pointsToAdd = transaction.getTransactionLineItems().stream()
+                .mapToDouble(transactionLineItem -> transactionLineItem.getProduct().getPrice() * transactionLineItem.getQuantity())
+                .sum();
+        String url = "http://gateway:8072/loyalty-program/v1/loyalty/"
+                + customer.getId() + "/credit/" + pointsToAdd;
+        sendRequest(token, url, HttpMethod.POST, Void.class);
+    }
+
+    private void sendRequest(String token, String url, HttpMethod httpMethod, Class<?> clazz) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
+
+        try {
+            ResponseEntity<?> response = restTemplate.exchange(
+                    url,
+                    httpMethod,
+                    requestEntity,
+                    clazz
+            );
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Failed to call external service. Status code: " + response.getStatusCode());
+            }
+
+        } catch (RestClientException e) {
+            throw new RuntimeException("Error calling external service.", e);
+        }
     }
 }

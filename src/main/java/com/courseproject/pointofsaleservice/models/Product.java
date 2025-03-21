@@ -31,6 +31,9 @@ public class Product {
     @NotBlank
     private String description;
 
+    @NotNull
+    private Double price;
+
     @OneToMany(mappedBy = "product")
     @JsonManagedReference("product-transactionLineItems")
     @ToString.Exclude
