@@ -44,5 +44,6 @@ public class Transaction {
 
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL)
     @JsonManagedReference("transaction-transactionLineItems")
+    @ToString.Exclude
     private Set<TransactionLineItem> transactionLineItems = new HashSet<>();
 }

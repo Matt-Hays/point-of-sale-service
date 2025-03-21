@@ -33,5 +33,6 @@ public class Product {
 
     @OneToMany(mappedBy = "product")
     @JsonManagedReference("product-transactionLineItems")
+    @ToString.Exclude
     private Set<TransactionLineItem> transactionLineItems = new HashSet<>();
 }
