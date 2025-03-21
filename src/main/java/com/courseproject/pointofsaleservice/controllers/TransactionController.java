@@ -58,4 +58,9 @@ public class TransactionController {
     public void deleteTransaction(@PathVariable Long id) {
         transactionService.deleteTransaction(id);
     }
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<Transaction> completeTransaction(@RequestHeader("Authorization") String token, @PathVariable Long id) {
+        return ResponseEntity.ok(transactionService.completeTransaction(token, id));
+    }
 }

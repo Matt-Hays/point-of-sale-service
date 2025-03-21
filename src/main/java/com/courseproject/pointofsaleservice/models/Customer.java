@@ -52,5 +52,6 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer")
     @JsonManagedReference("customer-transactions")
+    @ToString.Exclude
     private Set<Transaction> transactions = new HashSet<>();
 }

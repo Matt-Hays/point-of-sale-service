@@ -33,5 +33,6 @@ public class Register {
 
     @OneToMany(mappedBy = "register")
     @JsonManagedReference("register-transactions")
+    @ToString.Exclude
     private Set<Transaction> transactions = new HashSet<>();
 }
