@@ -2,6 +2,7 @@ package com.courseproject.pointofsaleservice.services;
 
 import com.courseproject.pointofsaleservice.models.*;
 import com.courseproject.pointofsaleservice.repositories.TransactionRepository;
+import com.courseproject.pointofsaleservice.services.utils.InventoryFeignClient;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ public class TransactionService {
     private final RegisterService registerService;
     private final ProductService productService;
     private final RestTemplateBuilder restTemplateBuilder;
+    private final InventoryFeignClient inventoryFeignClient;
 
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findAll();
@@ -94,20 +96,27 @@ public class TransactionService {
     private void deductProductQuantity(String token, Transaction transaction) {
         transaction.getTransactionLineItems().forEach(transactionLineItem -> {
             Double qty = transactionLineItem.getQuantity();
-            String url = "http://gateway:8072/inventory-service/v1/product/"
-                    + transactionLineItem.getProduct().getId() + "/sale/" + qty;
-            sendRequest(token, url, HttpMethod.PATCH, Product.class);
+            Long productId = transactionLineItem.getProduct().getId();
+            try {
+                ResponseEntity<Product> response = inventoryFeignClient.saleProduct(token, productId, qty);
+                if (!response.getStatusCode().is2xxSuccessful()) {
+                    throw new RuntimeException("Failed to update product quantity for product " + productId);
+                }
+            } catch (RestClientException e) {
+                throw new RuntimeException("Error calling inventory service.", e);
+            }
         });
     }
 
     private void addLoyaltyRewards(String token, Transaction transaction) {
-        Customer customer = transaction.getCustomer();
         double pointsToAdd = transaction.getTransactionLineItems().stream()
-                .mapToDouble(transactionLineItem -> transactionLineItem.getProduct().getPrice() * transactionLineItem.getQuantity())
+                .mapToDouble(item ->
+                        item.getProduct().getPrice() * item.getQuantity())
                 .sum();
+        // Keeping the RestTemplate call here as is or refactor it to a Feign client if needed.
         String url = "http://gateway:8072/loyalty-program/v1/loyalty/"
-                + customer.getId() + "/credit/" + pointsToAdd;
-        sendRequest(token, url, HttpMethod.POST, Void.class);
+                + transaction.getCustomer().getId() + "/credit/" + pointsToAdd;
+        sendRequest(token, url, org.springframework.http.HttpMethod.POST, Void.class);
     }
 
     private void sendRequest(String token, String url, HttpMethod httpMethod, Class<?> clazz) {
