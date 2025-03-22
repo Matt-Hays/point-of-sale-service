@@ -1,11 +1,19 @@
 package com.courseproject.pointofsaleservice.services;
 
 import com.courseproject.pointofsaleservice.models.Customer;
+import com.courseproject.pointofsaleservice.models.dto.CustomerDTO;
+import com.courseproject.pointofsaleservice.models.dto.LoyaltyAccountDTO;
 import com.courseproject.pointofsaleservice.repositories.CustomerRepository;
+import com.courseproject.pointofsaleservice.services.utils.LoyaltyFeignClient;
+
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 import java.lang.Long;
@@ -14,9 +22,33 @@ import java.lang.Long;
 @AllArgsConstructor
 public class CustomerService {
     private CustomerRepository customerRepository;
+    private final LoyaltyFeignClient loyaltyFeignClient;
 
-    public Customer saveCustomer(Customer customer) {
-        return customerRepository.save(customer);
+    @Transactional
+    public Customer saveCustomer(String token, Customer customer) {
+        Customer newCustomer = customerRepository.save(customer);
+        CustomerDTO customerDTO = new CustomerDTO(newCustomer.getId());
+        LoyaltyAccountDTO loyaltyAccountDTO = new LoyaltyAccountDTO(Double.valueOf(0), customerDTO);
+
+        try {
+            ResponseEntity<Void> response = loyaltyFeignClient.createLoyaltyCustomer(token, customerDTO);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Failed to create new loyalty customer");
+            }
+        } catch (RestClientException e) {
+            throw new RuntimeException("Error calling loyalty service.", e);
+        }
+
+        try {
+            ResponseEntity<Void> response = loyaltyFeignClient.createLoyaltyAccount(token, loyaltyAccountDTO);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Failed to create new loyalty account");
+            }
+        } catch (RestClientException e) {
+            throw new RuntimeException("Error calling loyalty service.", e);
+        }
+
+        return newCustomer;
     }
 
     public List<Customer> getAllCustomers() {
@@ -29,15 +61,24 @@ public class CustomerService {
 
     public Customer updateCustomer(Long id, Customer customer) throws EntityNotFoundException {
         Customer oldCustomer = getCustomerById(id);
-        if (customer.getFirstName() != null) oldCustomer.setFirstName(customer.getFirstName());
-        if (customer.getLastName() != null) oldCustomer.setLastName(customer.getLastName());
-        if (customer.getPhoneNumber() != null) oldCustomer.setPhoneNumber(customer.getPhoneNumber());
-        if (customer.getEmail() != null) oldCustomer.setEmail(customer.getEmail());
-        if (customer.getAddress() != null) oldCustomer.setAddress(customer.getAddress());
-        if (customer.getCity() != null) oldCustomer.setCity(customer.getCity());
-        if (customer.getState() != null) oldCustomer.setState(customer.getState());
-        if (customer.getCountry() != null) oldCustomer.setCountry(customer.getCountry());
-        if (customer.getZipCode() != null) oldCustomer.setZipCode(customer.getZipCode());
+        if (customer.getFirstName() != null)
+            oldCustomer.setFirstName(customer.getFirstName());
+        if (customer.getLastName() != null)
+            oldCustomer.setLastName(customer.getLastName());
+        if (customer.getPhoneNumber() != null)
+            oldCustomer.setPhoneNumber(customer.getPhoneNumber());
+        if (customer.getEmail() != null)
+            oldCustomer.setEmail(customer.getEmail());
+        if (customer.getAddress() != null)
+            oldCustomer.setAddress(customer.getAddress());
+        if (customer.getCity() != null)
+            oldCustomer.setCity(customer.getCity());
+        if (customer.getState() != null)
+            oldCustomer.setState(customer.getState());
+        if (customer.getCountry() != null)
+            oldCustomer.setCountry(customer.getCountry());
+        if (customer.getZipCode() != null)
+            oldCustomer.setZipCode(customer.getZipCode());
         return customerRepository.save(oldCustomer);
     }
 
