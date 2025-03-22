@@ -3,17 +3,14 @@ package com.courseproject.pointofsaleservice.services;
 import com.courseproject.pointofsaleservice.models.*;
 import com.courseproject.pointofsaleservice.repositories.TransactionRepository;
 import com.courseproject.pointofsaleservice.services.utils.InventoryFeignClient;
+import com.courseproject.pointofsaleservice.services.utils.LoyaltyFeignClient;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,6 +26,7 @@ public class TransactionService {
     private final ProductService productService;
     private final RestTemplateBuilder restTemplateBuilder;
     private final InventoryFeignClient inventoryFeignClient;
+    private final LoyaltyFeignClient loyaltyFeignClient;
 
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findAll();
@@ -113,32 +111,13 @@ public class TransactionService {
                 .mapToDouble(item ->
                         item.getProduct().getPrice() * item.getQuantity())
                 .sum();
-        // Keeping the RestTemplate call here as is or refactor it to a Feign client if needed.
-        String url = "http://gateway:8072/loyalty-program/v1/loyalty/"
-                + transaction.getCustomer().getId() + "/credit/" + pointsToAdd;
-        sendRequest(token, url, org.springframework.http.HttpMethod.POST, Void.class);
-    }
-
-    private void sendRequest(String token, String url, HttpMethod httpMethod, Class<?> clazz) {
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", token);
-        HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
-
         try {
-            ResponseEntity<?> response = restTemplate.exchange(
-                    url,
-                    httpMethod,
-                    requestEntity,
-                    clazz
-            );
-
+            ResponseEntity<Void> response = loyaltyFeignClient.creditLoyalty(token, transaction.getCustomer().getId(), pointsToAdd);
             if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new RuntimeException("Failed to call external service. Status code: " + response.getStatusCode());
+                throw new RuntimeException("Failed to update loyalty quantity for customer " + transaction.getCustomer().getId());
             }
-
         } catch (RestClientException e) {
-            throw new RuntimeException("Error calling external service.", e);
+            throw new RuntimeException("Error calling loyalty service.", e);
         }
     }
 }
