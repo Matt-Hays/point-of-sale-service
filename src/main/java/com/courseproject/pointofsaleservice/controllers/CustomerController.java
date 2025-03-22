@@ -28,8 +28,8 @@ public class CustomerController {
     }
 
     @PostMapping
-    public Customer createCustomer(@RequestBody @Valid Customer customer) {
-        return customerService.saveCustomer(customer);
+    public Customer createCustomer(@RequestHeader("Authorization") String token, @RequestBody @Valid Customer customer) {
+        return customerService.saveCustomer(token, customer);
     }
 
     @PatchMapping("/{id}")
