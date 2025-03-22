@@ -25,7 +25,6 @@ public class Product {
     @Version
     private Long version;
 
-    @NotBlank
     private String sku;
 
     @NotBlank
