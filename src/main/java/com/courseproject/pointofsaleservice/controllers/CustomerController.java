@@ -5,7 +5,6 @@ import com.courseproject.pointofsaleservice.services.CustomerService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.lang.Long;
@@ -15,7 +14,6 @@ import java.lang.Long;
 @RequestMapping("v1/customer")
 public class CustomerController {
     private final CustomerService customerService;
-    private final RestTemplate restTemplate = new RestTemplate();
 
     @GetMapping
     public List<Customer> getAllCustomers() {
@@ -28,8 +26,9 @@ public class CustomerController {
     }
 
     @PostMapping
-    public Customer createCustomer(@RequestBody @Valid Customer customer) {
-        return customerService.saveCustomer(customer);
+    public Customer createCustomer(@RequestHeader("Authorization") String token,
+            @RequestBody @Valid Customer customer) {
+        return customerService.saveCustomer(token, customer);
     }
 
     @PatchMapping("/{id}")
