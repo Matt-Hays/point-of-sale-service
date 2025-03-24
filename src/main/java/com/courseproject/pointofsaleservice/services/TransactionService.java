@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -100,7 +99,7 @@ public class TransactionService {
                 if (!response.getStatusCode().is2xxSuccessful()) {
                     throw new RuntimeException("Failed to update product quantity for product " + productId);
                 }
-            } catch (RestClientException e) {
+            } catch (Exception e) {
                 throw new RuntimeException("Error calling inventory service.", e);
             }
         });
@@ -116,7 +115,7 @@ public class TransactionService {
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new RuntimeException("Failed to update loyalty quantity for customer " + transaction.getCustomer().getId());
             }
-        } catch (RestClientException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error calling loyalty service.", e);
         }
     }
