@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: point-of-sale-service
+  profiles:
+    active: dev
+
+resilience4j.circuitbreaker:
+  instances:
+    licenseService:
+      register-health-indicator: true
+      slidingWindowType: COUNT_BASED
+      slidingWindowSize: 5  # replaces ringBufferSizeInClosedState
+      permittedNumberOfCallsInHalfOpenState: 3  # replaces ringBufferSizeInHalfOpenState
+      waitDurationInOpenState: 10s
+      failureRateThreshold: 50
+      record-exceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+        - java.util.concurrent.TimeoutException
+        - org.springframework.web.client.ResourceAccessException
+    organizationService:
+      register-health-indicator: true
+      slidingWindowType: COUNT_BASED
+      slidingWindowSize: 6
+      permittedNumberOfCallsInHalfOpenState: 4
+      waitDurationInOpenState: 20s
+      failureRateThreshold: 60
+
+resilience4j.ratelimiter:
+  instances:
+    licenseService:
+      limitForPeriod: 5
+      limitRefreshPeriod: 5s
+      timeoutDuration: 1s  # better to express as ISO-8601 or readable unit
+
+resilience4j.retry:
+  instances:
+    retryLicenseService:
+      maxAttempts: 5  # replaces maxRetryAttempts
+      waitDuration: 10s
+      retry-exceptions:
+        - java.util.concurrent.TimeoutException
+
+resilience4j.bulkhead:
+  instances:
+    bulkheadLicenseService:
+      maxWaitDuration: 2ms
+      maxConcurrentCalls: 20
+
+resilience4j.thread-pool-bulkhead:
+  instances:
+    bulkheadLicenseService:
+      maxThreadPoolSize: 1
+      coreThreadPoolSize: 1
+      queueCapacity: 1

@@ -5,18 +5,18 @@ import com.courseproject.pointofsaleservice.models.dto.CustomerDTO;
 import com.courseproject.pointofsaleservice.models.dto.LoyaltyAccountDTO;
 import com.courseproject.pointofsaleservice.repositories.CustomerRepository;
 import com.courseproject.pointofsaleservice.services.utils.LoyaltyFeignClient;
-
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 
 import java.util.List;
-import java.lang.Long;
 
 @Service
 @AllArgsConstructor
@@ -24,7 +24,10 @@ public class CustomerService {
     private CustomerRepository customerRepository;
     private final LoyaltyFeignClient loyaltyFeignClient;
 
-    @Transactional
+    @RateLimiter(name = "CustomerService::saveCustomer-ratelimiter")
+    @Retry(name = "CustomerService::saveCustomer-retry")
+    @Bulkhead(name = "CustomerService::saveCustomer-bulkhead")
+    @CircuitBreaker(name = "CustomerService::saveCustomer-circuitbreaker")
     public Customer saveCustomer(String token, Customer customer) {
         Customer newCustomer = customerRepository.save(customer);
         CustomerDTO customerDTO = new CustomerDTO(newCustomer.getId());

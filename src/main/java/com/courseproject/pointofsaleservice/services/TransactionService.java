@@ -5,6 +5,10 @@ import com.courseproject.pointofsaleservice.repositories.TransactionRepository;
 import com.courseproject.pointofsaleservice.services.utils.InventoryFeignClient;
 import com.courseproject.pointofsaleservice.services.utils.LoyaltyFeignClient;
 
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -96,6 +100,10 @@ public class TransactionService {
         return savedTransaction;
     }
 
+    @RateLimiter(name = "InventoryService:deductProductQuantity-ratelimiter")
+    @Retry(name = "InventoryService:deductProductQuantity-retry")
+    @Bulkhead(name = "InventoryService:deductProductQuantity-bulkhead")
+    @CircuitBreaker(name = "InventoryService:deductProductQuantity-circuitbreaker")
     private void deductProductQuantity(String token, Transaction transaction) {
         transaction.getTransactionLineItems().forEach(transactionLineItem -> {
             Double qty = transactionLineItem.getQuantity();
@@ -111,6 +119,10 @@ public class TransactionService {
         });
     }
 
+    @RateLimiter(name = "InventoryService:addLoyaltyRewards-ratelimiter")
+    @Retry(name = "InventoryService:addLoyaltyRewards-retry")
+    @Bulkhead(name = "InventoryService:addLoyaltyRewards-bulkhead")
+    @CircuitBreaker(name = "InventoryService:addLoyaltyRewards-circuitbreaker")
     private void addLoyaltyRewards(String token, Transaction transaction) {
         double pointsToAdd = transaction.getTransactionLineItems().stream()
                 .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
