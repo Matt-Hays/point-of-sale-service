@@ -4,22 +4,28 @@ import com.courseproject.pointofsaleservice.models.Register;
 import com.courseproject.pointofsaleservice.repositories.RegisterRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.lang.Long;
 
 @Service
 @AllArgsConstructor
 public class RegisterService {
     private final RegisterRepository registerRepository;
+    private final RedisTemplate<Long, Register> redisTemplate;
 
     public List<Register> findAllRegisters() {
         return registerRepository.findAll();
     }
 
     public Register findRegisterById(Long id) throws EntityNotFoundException {
-        return registerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Register r = redisTemplate.opsForValue().get(id);
+        if (r == null) {
+            r = registerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+            redisTemplate.opsForValue().set(id, r);
+        }
+        return r;
     }
 
     public Register createRegister(Register register) {

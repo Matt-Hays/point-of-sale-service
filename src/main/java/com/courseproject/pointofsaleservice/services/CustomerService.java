@@ -12,6 +12,7 @@ import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -21,8 +22,9 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class CustomerService {
-    private CustomerRepository customerRepository;
     private final LoyaltyFeignClient loyaltyFeignClient;
+    private final RedisTemplate<Long, Customer> redisTemplate;
+    private CustomerRepository customerRepository;
 
     @RateLimiter(name = "CustomerService::saveCustomer-ratelimiter")
     @Retry(name = "CustomerService::saveCustomer-retry")
@@ -59,7 +61,12 @@ public class CustomerService {
     }
 
     public Customer getCustomerById(Long id) throws EntityNotFoundException {
-        return customerRepository.findById(id).orElseThrow(EntityExistsException::new);
+        Customer c = redisTemplate.opsForValue().get(id);
+        if (c == null) {
+            c = customerRepository.findById(id).orElseThrow(EntityExistsException::new);
+            redisTemplate.opsForValue().set(id, c);
+        }
+        return c;
     }
 
     public Customer updateCustomer(Long id, Customer customer) throws EntityNotFoundException {

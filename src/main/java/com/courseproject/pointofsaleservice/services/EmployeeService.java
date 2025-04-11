@@ -4,22 +4,28 @@ import com.courseproject.pointofsaleservice.models.Employee;
 import com.courseproject.pointofsaleservice.repositories.EmployeeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.lang.Long;
 
 @Service
 @AllArgsConstructor
 public class EmployeeService {
     private final EmployeeRepository employeeRepository;
+    private final RedisTemplate<Long, Employee> redisTemplate;
 
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
     }
 
     public Employee getEmployeeById(Long id) throws EntityNotFoundException {
-        return employeeRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Employee e = redisTemplate.opsForValue().get(id);
+        if (e == null) {
+            e = employeeRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+            redisTemplate.opsForValue().set(id, e);
+        }
+        return e;
     }
 
     public Employee saveEmployee(Employee employee) {
