@@ -6,10 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.springframework.data.redis.core.RedisHash;
 
 @Entity
 @Getter
@@ -18,8 +17,7 @@ import org.springframework.data.redis.core.RedisHash;
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = "transactionLineItems")
 @ToString
-@RedisHash("product")
-public class Product {
+public class Product implements Serializable {
     @Id
     @NotNull
     @Column(unique = true, nullable = false)

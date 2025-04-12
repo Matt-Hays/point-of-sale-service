@@ -6,10 +6,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.springframework.data.redis.core.RedisHash;
 
 @Entity
 @Getter
@@ -18,8 +17,7 @@ import org.springframework.data.redis.core.RedisHash;
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = "transactions")
 @ToString
-@RedisHash("employee")
-public class Employee {
+public class Employee implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
