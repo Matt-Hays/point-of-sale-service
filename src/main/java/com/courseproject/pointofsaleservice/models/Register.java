@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.redis.core.RedisHash;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -17,6 +18,7 @@ import java.util.Set;
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = "transactions")
 @ToString
+@RedisHash("register")
 public class Register {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

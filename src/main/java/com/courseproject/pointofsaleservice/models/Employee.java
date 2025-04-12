@@ -9,6 +9,8 @@ import lombok.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.springframework.data.redis.core.RedisHash;
+
 @Entity
 @Getter
 @Setter
@@ -16,6 +18,7 @@ import java.util.Set;
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = "transactions")
 @ToString
+@RedisHash("employee")
 public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -12,6 +12,8 @@ import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class CustomerService {
     private final LoyaltyFeignClient loyaltyFeignClient;
     private final RedisTemplate<Long, Customer> redisTemplate;
@@ -63,6 +66,7 @@ public class CustomerService {
     public Customer getCustomerById(Long id) throws EntityNotFoundException {
         Customer c = redisTemplate.opsForValue().get(id);
         if (c == null) {
+            log.info("Customer {} not found in Redis", id);
             c = customerRepository.findById(id).orElseThrow(EntityExistsException::new);
             redisTemplate.opsForValue().set(id, c);
         }
