@@ -35,9 +35,4 @@ public class ProductChangeEventListener {
 		};
 	}
 
-	@KafkaListener(topics = "productChangeModel", groupId = "productGroup", containerFactory = "kafkaListenerContainerFactory")
-	public void listen(ProductChangeModel productChangeModel) {
-		log.debug("Received a new productChangeModel: {}", productChangeModel.getProductId());
-		productChangeHandler.loggerSink(productChangeModel);
-	}
 }
